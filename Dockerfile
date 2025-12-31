@@ -7,10 +7,10 @@ WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
 	--mount=type=bind,source=uv.lock,target=uv.lock,z \
 	--mount=type=bind,source=pyproject.toml,target=pyproject.toml,z \
-	uv sync --frozen --no-install-project --no-dev
+	uv sync --locked --no-install-project --no-dev
 ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-	uv sync --frozen --no-dev
+	uv sync --locked --no-install-project --no-dev
 
 ## the version needs to match the version used in the builder stage
 FROM python:3.13-slim-bookworm
