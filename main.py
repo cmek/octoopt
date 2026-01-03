@@ -35,13 +35,14 @@ def main():
 
     battery_charge_window = api.get_battery_charge_window()
     peak_time_window = api.get_peak_time(slots=1)
+    savings = peak_time_window["total_cost"] - battery_charge_window["total_cost"]
 
     message = f"""battery charge window: {battery_charge_window["start_time"]} - {battery_charge_window["end_time"]} {battery_charge_window["start_time_hour"]} - {battery_charge_window["end_time_hour"]}
-battery charge cost: {battery_charge_window["total_cost"]}p (@ {battery_charge_window["avg_cost_per_khw"]} p/kWh)
+battery charge cost: {battery_charge_window["total_cost"]:.3f}p (@ {battery_charge_window["avg_cost_per_khw"]:.3f} p/kWh)
 
 peak time window: {peak_time_window["start_time"]} - {peak_time_window["end_time"]} {peak_time_window["start_time_hour"]} - {peak_time_window["end_time_hour"]}
-peak time cost: {peak_time_window["total_cost"]}p (@ {peak_time_window["avg_cost_per_khw"]} p/kWh)
-savings: {peak_time_window["total_cost"] - battery_charge_window["total_cost"]}p"""
+peak time cost: {peak_time_window["total_cost"]:.3f}p (@ {peak_time_window["avg_cost_per_khw"]:.3f} p/kWh)
+savings: {savings:.3f}p"""
 
     # set inverter stuff
     giveapi.writeInverterSetting(
