@@ -55,6 +55,8 @@ def main():
     battery_charge_window = api.get_battery_charge_window()
     peak_time_window = api.get_peak_time(slots=0)
     savings = peak_time_window["total_cost"] - battery_charge_window["total_cost"]
+    average_kw_cost = api.get_average_cost_per_kwh()
+    negative_cost_items = api.get_negative_cost_items()
 
     if args.dry_run:
         print("DRY RUN: The following inverter settings would be applied:")
@@ -93,7 +95,12 @@ Battery will be charged between {battery_charge_window["start_time_hour"]} - {ba
 
 The peak time tomorrow is between {peak_time_window["start_time_hour"]} - {peak_time_window["end_time_hour"]}. This is when the house should be running on battery only so avoid running additional appliances like dishwashers or washing/drying machine at this time.
 Peak time energy cost for 9.5kWh will be £{peak_time_window["total_cost"] / 100:.3f} (@ £{peak_time_window["avg_cost_per_khw"] / 100:.3f} per kWh)
-This represents about £{savings / 100:.3f} in savings"""
+This represents about £{savings / 100:.3f} in savings
+Average cost per kWh is £{average_kw_cost / 100:.3f}
+
+If the array below is not empty it means that there are some time periods when the cost of kWh is negative. Mention these giving the exact date if that's the case.
+{negative_cost_items}
+"""
     logger.info(message)
     Context.objects.filter(tags__contains=["power_settings", "brief"]).delete()
     Context.objects.create(

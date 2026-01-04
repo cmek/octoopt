@@ -52,6 +52,12 @@ class OctopusAgile:
         dt_local = dt_utc.astimezone()
         return dt_local.strftime("%H:%M")
 
+    def get_average_cost_per_kwh(self):
+        return sum(item["value_inc_vat"] for item in self.data)/len(self.data)
+
+    def get_negative_cost_items(self):
+        return [i for i in self.data if i["value_inc_vat"] <= 0.0]
+
     def get_peak_time(self, slots=0):
         steps = self.hours_to_charge * 2 + slots
         max_sum = 0.0
