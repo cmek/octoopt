@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -27,6 +28,8 @@ class GivEnergyApi:
         response = requests.request(
             "POST", f"{self.url_root}/{url}", headers=self.headers, json=payload
         )
+        logger.info(f"api responded with {response.status_code}, {response.json()}")
+        response.raise_for_status()
         return response.json()
 
     def getCommunicationDevices(self):
@@ -83,9 +86,11 @@ class GivEnergyApi:
         id = self.getSettingId(setting_name)
         logger.info(f"writing {value} to {setting_name} (id: {id})")
         payload = {"value": value, "context": "script"}
-        return self._post(
+        resp = self._post(
             f"inverter/{self.inverter_serial_number}/settings/{id}/write", payload
         )
+
+        return resp
 
 
 def main():
@@ -111,14 +116,15 @@ def main():
     # print(giveapi.getCommunicationDevices())
 
     # print(giveapi.writeInverterSetting("AC Charge 1 End Time", "04:00"))
+    # print(giveapi.readInverterSetting("AC Charge 1 End Time"))
 
     #      "validation": "Value must be one of: 0, 1, 2 (Load First, Battery First, Grid First)",
-    # print(giveapi.readInverterSetting("Export Power Priority"))
+    print(giveapi.readInverterSetting("Export Power Priority"))
     # print(giveapi.readInverterSetting("Pause Battery"))
 
     # print(giveapi.getInverterEvents())
     # print(giveapi.getInverterEnergyData())
-    print(json.dumps(giveapi.getInverterDataPoints()))
+    # print(json.dumps(giveapi.getInverterDataPoints()))
 
     # Pause Battery Start Time - after it's fully charged
     # Pause Battery End Time - before peak load starts
