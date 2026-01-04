@@ -1,13 +1,12 @@
-import asyncio
+# import asyncio
 import os
 import logging
 from dotenv import load_dotenv
 from agileocto import OctopusAgile
-from telegram.ext import Application
-from givenergy import GivEnergyApi
-import json
-from datetime import datetime, timedelta
+
+# from telegram.ext import Application
 from octoapi import OctoApi
+from db.models import Context
 
 OCTOPUS_PRODUCT_CODE = "AGILE-24-10-01"
 OCTOPUS_TARIFF_CODE = "E-1R-AGILE-24-10-01-G"
@@ -25,8 +24,8 @@ async def send_message(bot, group_id, text):
 def main():
     old_octopus_rate = 27.0
 
-    app = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
-    group_id = os.getenv("TELEGRAM_GROUP_ID")
+    #    app = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
+    #    group_id = os.getenv("TELEGRAM_GROUP_ID")
 
     # 0 means get data for today
     # by default it's set to 1 but that will only work if run after 8pm
@@ -57,16 +56,27 @@ def main():
             cost = consumption * price
             total_power_kwh += consumption
             total_cost += cost
-            print(
+            logger.info(
                 f"{start}: {consumption} kWh, Price: {price} p/kWh, Cost: {cost:.3f} p"
             )
         else:
-            print(f"{start}: No price data")
+            logger.info(f"{start}: No price data")
 
-    message = f"total power usage: {total_power_kwh} kWh, total cost: {total_cost / 100:.3f} £, old tariff: {(total_power_kwh * old_octopus_rate) / 100:.3f}"
-    print(message)
+    message = f"""Here is the power usage report for {consumption_data[0].get("interval_start")}:
+{total_power_kwh:.3f}kWh
+total cost: £{total_cost / 100:.3f}
+cost on old tariff: £{(total_power_kwh * old_octopus_rate) / 100:.3f}.
 
-    asyncio.run(send_message(app.bot, group_id, message))
+Add these values to the daily brief as they are."""
+
+    logger.info(message)
+    Context.objects.filter(tags__contains=["power_report", "brief"]).delete()
+    Context.objects.create(
+        context=message, created_by="power_report", tags=["power_report", "brief"]
+    )
+
+
+#    asyncio.run(send_message(app.bot, group_id, message))
 
 
 if __name__ == "__main__":
